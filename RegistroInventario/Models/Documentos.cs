@@ -1,6 +1,3 @@
-
-
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using GoldCrew.Data.Enums;
@@ -16,16 +13,14 @@ public class ReporteIncidente
     public string NumeroGuia{get; set;}="";
     public int ProductoId{get; set;}
     public Producto? Producto{get; set;}
-    [Range(1, int.MaxValue, ErrorMessage ="LA Cantidad debe ser mayor a cero (0)")]
+    [Range(1, int.MaxValue, ErrorMessage = "La Cantidad debe ser mayor a cero (0)")]
     public int CantidadAfectada{get; set;}
     [Required, StringLength(500)]
-    public string Descripcion{get; set;}="";
+    public string Descripcion{get; set;}= "";
     public int CreadoPorId{get; set;}
     public Usuario? CreadoPor{get; set;}
     public bool Activo{get; set;}= true;
 }
-
-
 public class InformeBaja
 {
     public int Id { get; set; }
@@ -39,11 +34,10 @@ public class InformeBaja
     public Usuario? CreadoPor { get; set; }
     public bool Activo { get; set; } = true;
 }
-
 public class OrdenCompra
 {
     public int Id { get; set; }
-    [Required, StringLength(20)] public string Numero { get; set; } = "";   // OC-0001
+    [Required, StringLength(20)] public string Numero { get; set; } = "";   
     public DateTime Fecha { get; set; } = DateTime.Today;
     public int ProveedorId { get; set; }
     public Proveedor? Proveedor { get; set; }
@@ -55,7 +49,6 @@ public class OrdenCompra
     public List<OrdenCompraDetalle> Detalles { get; set; } = new();
     [NotMapped] public decimal Total => Detalles.Sum(d => d.Subtotal);
 }
-
 public class OrdenCompraDetalle
 {
     public int Id { get; set; }
@@ -69,11 +62,10 @@ public class OrdenCompraDetalle
     public DateTime? FechaVencimiento { get; set; }
     [NotMapped] public decimal Subtotal => Cantidad * PrecioUnitario;
 }
-
 public class NotaDespacho
 {
     public int Id { get; set; }
-    [Required, StringLength(20)] public string Numero { get; set; } = "";   // ND-0001
+    [Required, StringLength(20)] public string Numero { get; set; } = "";   
     public DateTime Fecha { get; set; } = DateTime.Today;
     [Required, StringLength(120)] public string Destinatario { get; set; } = "";
     [Required, StringLength(250)] public string DireccionEntrega { get; set; } = "";
@@ -83,7 +75,6 @@ public class NotaDespacho
     public bool Activo { get; set; } = true;
     public List<NotaDespachoDetalle> Detalles { get; set; } = new();
 }
-
 public class NotaDespachoDetalle
 {
      public int Id { get; set; }
@@ -93,17 +84,16 @@ public class NotaDespachoDetalle
     public Producto? Producto { get; set; }
     [Range(1, int.MaxValue)] public int Cantidad { get; set; }
 }
-
 public class MovimientoInventario
 {
-     public int Id { get; set; }
+    public int Id { get; set; }
     public DateTime Fecha { get; set; } = DateTime.Now;
     public int ProductoId { get; set; }
     public Producto? Producto { get; set; }
     public TipoMovimiento Tipo { get; set; }
     public int Cantidad { get; set; }
     public int ExistenciaResultante { get; set; }
-    [StringLength(30)] public string Referencia { get; set; } = "";   // OC-0001, ND-0003, BAJA-0002
+    [StringLength(30)] public string Referencia { get; set; } = "";   
     public int UsuarioId { get; set; }
     public Usuario? Usuario { get; set; }
 }
