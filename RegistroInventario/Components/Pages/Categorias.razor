@@ -1,0 +1,92 @@
+﻿@page "/categorias"
+@inject ICategoriaService Servicio
+@inject IJSRuntime JS
+
+<h1>Categorías</h1>
+
+<fieldset>
+    <legend>Búsqueda</legend>
+    <input @bind="texto" placeholder="Nombre o descripción" />
+    <label><input type="checkbox" @bind="incluirInactivas" /> Incluir inactivas</label>
+    <button @onclick="Cargar">Buscar</button>
+    <a href="reportes/categorias">Ver reporte</a>
+</fieldset>
+
+@if (!string.IsNullOrEmpty(mensaje)) { <p><strong>@mensaje</strong></p> }
+@if (!string.IsNullOrEmpty(error)) { <p><strong>@error</strong></p> }
+
+<AuthorizeView Roles="Administrador,Almacenista">
+    <EditForm Model="modelo" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <h2>@(modelo.Id == 0 ? "Nueva categoría" : "Editar categoría")</h2>
+        <p><label>Nombre: <InputText @bind-Value="modelo.Nombre" /></label></p>
+        <p><label>Descripción: <InputText @bind-Value="modelo.Descripcion" /></label></p>
+        <button type="submit">Guardar</button>
+        <button type="button" @onclick="Nuevo">Cancelar</button>
+    </EditForm>
+</AuthorizeView>
+
+<h2>Listado (@lista.Count)</h2>
+<table border="1" cellpadding="4">
+    <thead><tr><th>Id</th><th>Nombre</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody>
+    @foreach (var c in lista)
+    {
+        <tr>
+            <td>@c.Id</td><td>@c.Nombre</td><td>@c.Descripcion</td>
+            <td>@(c.Activo ? "Activa" : "Inactiva")</td>
+            <td>
+                <AuthorizeView Roles="Administrador,Almacenista">
+                    @if (c.Activo)
+                    {
+                        <button @onclick="() => Editar(c)">Modificar</button>
+                        <button @onclick="() => Eliminar(c)">Eliminar</button>
+                    }
+                </AuthorizeView>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private List<Categoria> lista = new();
+    private Categoria modelo = new();
+    private string? texto, mensaje, error;
+    private bool incluirInactivas;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar() => lista = await Servicio.ListarAsync(texto, incluirInactivas);
+
+    private void Nuevo() { modelo = new(); error = null; }
+
+    private void Editar(Categoria c)
+    {
+        modelo = new Categoria { Id = c.Id, Nombre = c.Nombre, Descripcion = c.Descripcion };
+        mensaje = error = null;
+    }
+
+    private async Task Guardar()
+    {
+        mensaje = error = null;
+        try
+        {
+            if (modelo.Id == 0) { await Servicio.CrearAsync(modelo); mensaje = "Categoría creada con éxito."; }
+            else { await Servicio.ActualizarAsync(modelo); mensaje = "Categoría actualizada con éxito."; }
+            Nuevo();
+            await Cargar();
+        }
+        catch (ReglaNegocioException ex) { error = ex.Message; }
+        catch (Exception ex) { error = $"Error inesperado en el apartado de Categorías: {ex.Message}"; }
+    }
+
+    private async Task Eliminar(Categoria c)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar la categoría '{c.Nombre}'?")) return;
+        mensaje = error = null;
+        try { await Servicio.EliminarAsync(c.Id); mensaje = "Categoría eliminada con éxito."; await Cargar(); }
+        catch (ReglaNegocioException ex) { error = ex.Message; }
+    }
+}
